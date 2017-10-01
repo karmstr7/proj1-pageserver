@@ -17,13 +17,15 @@ logging.basicConfig(format='%(levelname)s:%(message)s',
 log = logging.getLogger(__name__)
 DOCROOT = "."   # Overridden by configuration
 
+
 def spew(file_name):
     """Spew contents of 'source' to standard output. 
     Source should be a file or file-like object.
     """
     source_path = os.path.join(DOCROOT, file_name)
+    print(source_path)
     log.debug("Source path: {}".format(source_path))
-    try: 
+    try:
         with open(source_path, 'r', encoding='utf-8') as source:
             for line in source:
                 print(line.strip())
@@ -31,6 +33,7 @@ def spew(file_name):
         log.warn("Failed to open or read file")
         log.warn("Requested file was {}".format(source_path))
         log.warn("Exception: {}".format(error))
+
 
 def main():
     global DOCROOT

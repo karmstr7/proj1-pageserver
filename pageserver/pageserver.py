@@ -15,10 +15,14 @@
 
 import config    # Configure from .ini files and command line
 import logging   # Better than print statements
+
+import os
+
 logging.basicConfig(format='%(levelname)s:%(message)s',
                     level=logging.INFO)
 log = logging.getLogger(__name__)
 # Logging level may be overridden by configuration 
+
 
 import socket    # Basic TCP/IP communication on the internet
 import _thread   # Response computation runs concurrently with main program
@@ -58,16 +62,6 @@ def serve(sock, func):
         (clientsocket, address) = sock.accept()
         _thread.start_new_thread(func, (clientsocket,))
 
-
-##
-# Starter version only serves cat pictures. In fact, only a
-# particular cat picture.  This one.
-##
-CAT = """
-     ^ ^
-   =(   )=
-"""
-
 # HTTP response codes, as the strings we will actually send.
 # See:  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # or    http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
@@ -76,6 +70,49 @@ STATUS_OK = "HTTP/1.0 200 OK\n\n"
 STATUS_FORBIDDEN = "HTTP/1.0 403 Forbidden\n\n"
 STATUS_NOT_FOUND = "HTTP/1.0 404 Not Found\n\n"
 STATUS_NOT_IMPLEMENTED = "HTTP/1.0 401 Not Implemented\n\n"
+
+
+def find_credentials():
+    """
+    Fetch DOCROOT from credentials.ini
+    :return: the DOCROOT value in string
+    """
+    path = config.config_file_args(["../credentials.ini"])
+    path = path["DOCROOT"]
+    return path
+
+
+def file_stringfy(file_name):
+    """
+    Opens the requested file (html or css) and reads the file line by line.
+    :param file_name: Name of the requested file.
+    :return: The entire requested file in string.
+    """
+    if file_name == "/":
+        file_name = "trivia.html"
+    elif file_name == "/trivia.css":
+        file_name = "trivia.css"
+    elif file_name == "/trivia.html":
+        file_name = "trivia.html"
+
+    if ".html" not in file_name and ".css" not in file_name:
+        return STATUS_FORBIDDEN
+    if "~" in file_name or "//" in file_name or ".." in file_name:
+        return STATUS_FORBIDDEN
+
+    source_path = os.path.join(find_credentials(), file_name)
+    response_body = """"""
+    try:
+        with open(source_path, 'r', encoding='utf-8') as source:
+            for line in source:
+                response_body = response_body + line
+    except OSError as error:
+        log.warn("Failed to open or read file")
+        log.warn("Requested file was {}".format(source_path))
+        log.warn("Exception: {}".format(error))
+        return STATUS_NOT_FOUND
+
+    return response_body
 
 
 def respond(sock):
@@ -92,7 +129,7 @@ def respond(sock):
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
         transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        transmit(file_stringfy(parts[1]), sock)
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)

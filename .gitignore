@@ -5,3 +5,5 @@ __pycache__
 *.pyc    
 solved.py
 ,*
+credentials.ini
+bash.exe.stackdump
