@@ -101,7 +101,7 @@ def file_stringfy(file_name):
     if "~" in file_name or "//" in file_name or ".." in file_name:
         return STATUS_FORBIDDEN
 
-    source_path = os.path.join(find_credentials(), file_name)
+    source_path = os.path.join(DOCROOT, file_name)
     response_body = """"""
     try:
         with open(source_path, 'r', encoding='utf-8') as source:
@@ -177,10 +177,7 @@ def main():
     global DOCROOT
     options = get_options()
     port = options.PORT
-    assert options.DOCROOT, "Document root must be specified in " \
-                            + "configuration file credentials.ini or on command line"
     DOCROOT = options.DOCROOT
-    assert options.input, "You must specify an input file on the command line"
     if options.DEBUG:
         log.setLevel(logging.DEBUG)
     sock = listen(port)
