@@ -27,6 +27,8 @@ log = logging.getLogger(__name__)
 import socket    # Basic TCP/IP communication on the internet
 import _thread   # Response computation runs concurrently with main program
 
+DOCROOT = "."
+
 
 def listen(portnum):
     """
@@ -72,14 +74,13 @@ STATUS_NOT_FOUND = "HTTP/1.0 404 Not Found\n\n"
 STATUS_NOT_IMPLEMENTED = "HTTP/1.0 401 Not Implemented\n\n"
 
 
-def find_credentials():
-    """
-    Fetch DOCROOT from credentials.ini
-    :return: the DOCROOT value in string
-    """
-    path = config.config_file_args(["../credentials.ini"])
-    path = path["DOCROOT"]
-    return path
+# def find_credentials():
+#     """
+#     Fetch DOCROOT from credentials.ini
+#     :return: the DOCROOT value in string
+#     """
+#     path = config.config_file_args("./credentials.ini", "DOCROOT")
+#     return path
 
 
 def file_stringfy(file_name):
@@ -173,8 +174,13 @@ def get_options():
 
 
 def main():
+    global DOCROOT
     options = get_options()
     port = options.PORT
+    assert options.DOCROOT, "Document root must be specified in " \
+                            + "configuration file credentials.ini or on command line"
+    DOCROOT = options.DOCROOT
+    assert options.input, "You must specify an input file on the command line"
     if options.DEBUG:
         log.setLevel(logging.DEBUG)
     sock = listen(port)
